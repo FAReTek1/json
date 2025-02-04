@@ -2,8 +2,9 @@
 This is a JSON decode/encoder library which is built for [goboscript](https://github.com/aspizu/goboscript).
 It is designed to be used with [backpack](https://github.com/aspizu/backpack)
 
-> [!WARNING]
-> The json package uses certain global variable names such as `i`, which are likely to cause naming conflicts. This may be fixed later, or when namespaces are added to goboscript.
+<!-- > [!WARNING]
+> The json package uses certain global variable names such as `i`, which are likely to cause naming conflicts. This may be fixed later, or when namespaces are added to goboscript. -->
+<!-- The variable name issue is resolved -->
 
 ## Installation
 To use this, make sure to install [backpack](https://github.com/aspizu/backpack)

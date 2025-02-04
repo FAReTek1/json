@@ -19,7 +19,7 @@ func decode(json) Result {
 func decode_value(i, json) Result {
     local type = eval_type($json);
 
-    i = $i; # NOT local
+    json_decode_index = $i; # NOT local
 
     if type == "string" {
         local value = decode_string($json);
@@ -41,17 +41,17 @@ func decode_value(i, json) Result {
 
     elif type == "true" {
         local value = true;
-        i += 4;
+        json_decode_index += 4;
     }
 
     elif type == "false" {
         local value = false;
-        i += 5;
+        json_decode_index += 5;
     }
 
     elif type == "null" {
         local value = "null";
-        i += 4;
+        json_decode_index += 4;
     }
 
     return Result{
@@ -82,65 +82,65 @@ func eval_type(json) {
 func decode_string(json) {
     # https://www.json.org/json-en.html#:~:text=A%20string%20is%20a%20sequence%20of%20zero%20or%20more%20Unicode%20characters%2C%20wrapped%20in%20double%20quotes%2C%20using%20backslash%20escapes.%20A%20character%20is%20represented%20as%20a%20single%20character%20string.%20A%20string%20is%20very%20much%20like%20a%20C%20or%20Java%20string.
     
-    i++; # skip first char
+    json_decode_index++; # skip first char
     local ret = "";
 
-    until $json[i] == "\"" {
-        if $json[i] == "\\" {
+    until $json[json_decode_index] == "\"" {
+        if $json[json_decode_index] == "\\" {
             # escaped chars
-            next = $json[i + 1];
+            local next = $json[json_decode_index + 1];
             if next == "\""{
                 ret &= "\"";
-                i += 2;
+                json_decode_index += 2;
 
             } elif next == "\\" {
                 ret &= "\\";
-                i += 2;
+                json_decode_index += 2;
             
             } elif next == "/" {
                 ret &= "/";
-                i += 2;
+                json_decode_index += 2;
 
             } elif next == "b" {
                 # not exactly sure how to implement
                 ret = slice(ret, 1, length ret - 1);
-                i += 2;
+                json_decode_index += 2;
 
             # These ones can't really be done in scratch :\
             # You would have to output the string as an array of tokens, which is kinda dumb
             } elif next == "f" {
                 ret &= "";
-                i += 2;
+                json_decode_index += 2;
 
             } elif next == "n" {
                 ret &= "\n";
-                i += 2;
+                json_decode_index += 2;
             
             } elif next == "r" {
                 ret &= "\r";
-                i += 2;
+                json_decode_index += 2;
             
             } elif next == "t" {
                 ret &= "\t";
-                i += 2;
+                json_decode_index += 2;
             
             } elif next == "u" {
-                local hex = slice($json, i + 2, i + 5);
+                local hex = slice($json, json_decode_index + 2, json_decode_index + 5);
                 # Convert hex to decimal
                 hex = HEX(hex);
 
                 ret &= unicode[hex];
 
-                i += 2 + 4;
+                json_decode_index += 2 + 4;
 
             } else {
                 # To avoid warp error, return sth
-                return "ERROR - invalid escape char @idx" & i;
+                return "ERROR - invalid escape char @idx" & json_decode_index;
             }
 
         } else {
-            ret &= $json[i];
-            i++;
+            ret &= $json[json_decode_index];
+            json_decode_index++;
         }
     }
 
@@ -149,59 +149,59 @@ func decode_string(json) {
 
 func decode_number(json) {
     local ret = "";
-    if $json[i] == "-" {
+    if $json[json_decode_index] == "-" {
         ret &= "-";
-        i++;
+        json_decode_index++;
     }
 
-    if $json[i] == "0" {
+    if $json[json_decode_index] == "0" {
         ret &= "0";
-        i++;
+        json_decode_index++;
 
-    } elif $json[i] in "123456789" {
-        until $json[i] not in "0123456789" or i > length $json {
-            ret &= $json[i];
-            i++;
+    } elif $json[json_decode_index] in "123456789" {
+        until $json[json_decode_index] not in "0123456789" or json_decode_index > length $json {
+            ret &= $json[json_decode_index];
+            json_decode_index++;
         }
     } else {
         return "NaN";
     }
 
     # fraction
-    if $json[i] == "." {
+    if $json[json_decode_index] == "." {
         ret &= ".";
-        i++;
+        json_decode_index++;
 
-        until $json[i] not in "0123456789" or i > length $json {
-            ret &= $json[i];
-            i++;
+        until $json[json_decode_index] not in "0123456789" or json_decode_index > length $json {
+            ret &= $json[json_decode_index];
+            json_decode_index++;
         }
     }
 
     # exponent
-    if $json[i] == "e" {
+    if $json[json_decode_index] == "e" {
         # ^^ Scratch is not case sensitive; this also detects "E"
-        ret &= $json[i];
-        i++;
+        ret &= $json[json_decode_index];
+        json_decode_index++;
 
-        if $json[i] == "-" {
+        if $json[json_decode_index] == "-" {
             ret &= "-";
-            i++;
+            json_decode_index++;
 
-        } elif $json[i] == "+" {
+        } elif $json[json_decode_index] == "+" {
             ret &= "+";
-            i++;
+            json_decode_index++;
         
-        } elif $json[i] not in "0123456789" {
+        } elif $json[json_decode_index] not in "0123456789" {
             return "NaN"; # If there is no + or -, there must be a digit next.
         }
         # We can assume there will be a digit now, due to the check above ^^
-        ret &= $json[i];
-        i++;
+        ret &= $json[json_decode_index];
+        json_decode_index++;
         
-        until $json[i] not in "0123456789" or i > length $json {
-            ret &= $json[i];
-            i++;
+        until $json[json_decode_index] not in "0123456789" or json_decode_index > length $json {
+            ret &= $json[json_decode_index];
+            json_decode_index++;
         }
     }
 
@@ -210,75 +210,75 @@ func decode_number(json) {
 
 proc decode_array json {
     delete arr;
-    i++;
+    json_decode_index++;
 
     local ret = "";
     local level = 1;
     local last_level1_arr = 0;
     local latest_bracket = "[";
 
-    until i > length $json or level == 0 {
+    until json_decode_index > length $json or level == 0 {
         skip_whitespace $json;
-        local prev_i = i;
+        local prev_i = json_decode_index;
         
-        if $json[i] in "{[" {
-            latest_bracket = $json[i] & latest_bracket;
+        if $json[json_decode_index] in "{[" {
+            latest_bracket = $json[json_decode_index] & latest_bracket;
             if level == 1 {
-                last_level1_arr = i;
+                last_level1_arr = json_decode_index;
             }
             level++;
-            i++;
+            json_decode_index++;
 
-        } elif $json[i] in "}]" {
+        } elif $json[json_decode_index] in "}]" {
             latest_bracket = slice(latest_bracket, 2, length latest_bracket);
             level--;
             if level == 1 {
-                add slice($json, last_level1_arr, i) to arr;
+                add slice($json, last_level1_arr, json_decode_index) to arr;
                 last_level1_arr = 0;
             }
-            i++;
+            json_decode_index++;
         
-        } elif $json[i] == "\"" {
+        } elif $json[json_decode_index] == "\"" {
             skip_string $json;
             if level == 1 {
-                add slice($json, prev_i, i - 1) to arr;
+                add slice($json, prev_i, json_decode_index - 1) to arr;
             }
         
-        } elif $json[i] in "-0123456789" {
+        } elif $json[json_decode_index] in "-0123456789" {
             skip_number $json;
             if level == 1 {
-                add slice($json, prev_i, i - 1) to arr;
+                add slice($json, prev_i, json_decode_index - 1) to arr;
             }
         
-        } elif startswith_from_idx($json, "true", i) {
-            i += 4;
+        } elif startswith_from_idx($json, "true", json_decode_index) {
+            json_decode_index += 4;
             if level == 1 {
                 add "true" to arr;
             }
             
-        } elif startswith_from_idx($json, "false", i) {
-            i += 5;
+        } elif startswith_from_idx($json, "false", json_decode_index) {
+            json_decode_index += 5;
             if level == 1 {
                 add "true" to arr;
             }
 
-        } elif startswith_from_idx($json, "null", i) {
-            i += 4;
+        } elif startswith_from_idx($json, "null", json_decode_index) {
+            json_decode_index += 4;
             if level == 1 {
                 add "null" to arr;
             }
         }
 
         if latest_bracket[1] == "{" {
-            if $json[i] == ":" {
+            if $json[json_decode_index] == ":" {
                 ret &= ":";
-                i++;
+                json_decode_index++;
             }
         }
 
-        if $json[i] == "," {
+        if $json[json_decode_index] == "," {
             ret &= ",";
-            i++;
+            json_decode_index++;
         }
     }
 }
@@ -295,7 +295,7 @@ proc decode_object json {
     delete keys;
     delete values;
 
-    i++;
+    json_decode_index++;
 
     local ret = "";
     local level = 1;
@@ -303,151 +303,151 @@ proc decode_object json {
     local latest_bracket = "{";
     local kv = "k";
 
-    until i > length $json or level == 0 {
+    until json_decode_index > length $json or level == 0 {
         skip_whitespace $json;
-        local prev_i = i;
+        local prev_i = json_decode_index;
         
-        if $json[i] in "{[" {
-            latest_bracket = $json[i] & latest_bracket;
+        if $json[json_decode_index] in "{[" {
+            latest_bracket = $json[json_decode_index] & latest_bracket;
             if level == 1 {
-                last_level1_arr = i;
+                last_level1_arr = json_decode_index;
             }
             level++;
-            i++;
+            json_decode_index++;
 
-        } elif $json[i] in "}]" {
+        } elif $json[json_decode_index] in "}]" {
             latest_bracket = slice(latest_bracket, 2, length latest_bracket);
             level--;
             if level == 1 {
-                add_to_kv kv, slice($json, last_level1_arr, i);
+                add_to_kv kv, slice($json, last_level1_arr, json_decode_index);
                 last_level1_arr = 0;
             }
-            i++;
+            json_decode_index++;
         
         
-        } elif $json[i] == "\"" {
+        } elif $json[json_decode_index] == "\"" {
             skip_string $json;
             if level == 1 {
-                add_to_kv kv, slice($json, prev_i, i - 1);
+                add_to_kv kv, slice($json, prev_i, json_decode_index - 1);
             }
         
-        } elif $json[i] in "-0123456789" {
+        } elif $json[json_decode_index] in "-0123456789" {
             skip_number $json;
             if level == 1 {
-                add_to_kv kv, slice($json, prev_i, i - 1);
+                add_to_kv kv, slice($json, prev_i, json_decode_index - 1);
             }
         
-        } elif startswith_from_idx($json, "true", i) {
-            i += 4;
+        } elif startswith_from_idx($json, "true", json_decode_index) {
+            json_decode_index += 4;
             if level == 1 {
                 add_to_kv kv, "true";
             }
             
-        } elif startswith_from_idx($json, "false", i) {
-            i += 5;
+        } elif startswith_from_idx($json, "false", json_decode_index) {
+            json_decode_index += 5;
             if level == 1 {
                 add_to_kv kv, "true";
             }
 
-        } elif startswith_from_idx($json, "null", i) {
-            i += 4;
+        } elif startswith_from_idx($json, "null", json_decode_index) {
+            json_decode_index += 4;
             if level == 1 {
                 add_to_kv kv, "null";
             }
         }
 
         if latest_bracket[1] == "{" {
-            if $json[i] == ":" {
+            if $json[json_decode_index] == ":" {
                 if level == 1 {
                     kv = "v";
                 }
                 ret &= ":";
-                i++;
+                json_decode_index++;
             }
         }
 
-        if $json[i] == "," {
+        if $json[json_decode_index] == "," {
             if level == 1{
                 kv = "k";
             }
             ret &= ",";
-            i++;
+            json_decode_index++;
         }
     }
 }
 
 
 proc skip_whitespace json {
-    until $json[i] not in " \t\n\r" or i > length $json {
-        i++;
+    until $json[json_decode_index] not in " \t\n\r" or json_decode_index > length $json {
+        json_decode_index++;
     }
 }
 
 proc skip_string json {
-    i++;
+    json_decode_index++;
 
-    until $json[i] == "\"" {
-        if $json[i] == "\\" {
-            i++;
-            next = $json[i];
+    until $json[json_decode_index] == "\"" {
+        if $json[json_decode_index] == "\\" {
+            json_decode_index++;
+            local next = $json[json_decode_index];
             if next in "\"\\/bfnrt" {
-                i++;
+                json_decode_index++;
             } elif next == "u" {
-                i += 5;
+                json_decode_index += 5;
             } # else {
                 # error
             # }
         } else {
-            i++;
+            json_decode_index++;
         }
     }
-    i++;
+    json_decode_index++;
 }
 
 proc skip_number json {
-    if $json[i] == "-" {
-        i++;
+    if $json[json_decode_index] == "-" {
+        json_decode_index++;
     }
 
-    if $json[i] == "0" {
-        i++;
+    if $json[json_decode_index] == "0" {
+        json_decode_index++;
 
-    } elif $json[i] in "123456789" {
-        until $json[i] not in "0123456789" or i > length $json {
-            i++;
+    } elif $json[json_decode_index] in "123456789" {
+        until $json[json_decode_index] not in "0123456789" or json_decode_index > length $json {
+            json_decode_index++;
         }
     } else {
         return "NaN";
     }
 
     # fraction
-    if $json[i] == "." {
-        i++;
+    if $json[json_decode_index] == "." {
+        json_decode_index++;
 
-        until $json[i] not in "0123456789" or i > length $json {
-            i++;
+        until $json[json_decode_index] not in "0123456789" or json_decode_index > length $json {
+            json_decode_index++;
         }
     }
 
     # exponent
-    if $json[i] == "e" {
+    if $json[json_decode_index] == "e" {
         # ^^ Scratch is not case sensitive; this also detects "E"
-        i++;
+        json_decode_index++;
 
-        if $json[i] == "-" {
-            i++;
+        if $json[json_decode_index] == "-" {
+            json_decode_index++;
 
-        } elif $json[i] == "+" {
-            i++;
+        } elif $json[json_decode_index] == "+" {
+            json_decode_index++;
         
-        } # elif $json[i] not in "0123456789" {
-            # If there is no + or -, there must be a digit next.
+        } # elif $json[json_decode_index] not in "0123456789" {
+            # This causes error
         # }
         # We can assume there will be a digit now, due to the check above ^^
-        i++;
+        json_decode_index++;
         
-        until $json[i] not in "0123456789" or i > length $json {
-            i++;
+        until $json[json_decode_index] not in "0123456789" or json_decode_index > length $json {
+            json_decode_index++;
         }
     }
 }
