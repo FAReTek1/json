@@ -18,5 +18,5 @@ json = "https://github.com/FAReTek1/json@<the version you want to use>"
 Then, add this %include to your gs file:
 you can also use this to just %include everything
 ```rs
-%include backpack/json
+%include backpack/json/json.gs
 ```
