@@ -3,6 +3,9 @@
 costumes "blank.svg";
 
 onflag {
-    Result r = decode("[1, \"hello \\\\_(:\\\\)_\\/\", 3, 4, true, false, null,  [true, false, null, {true: \"nah\"}], {true: \"nah\"}]");
+    ask "";
+    Result r = decode(answer());
     say r.type & ": " & r.value;
+
+    say encode(r);
 }

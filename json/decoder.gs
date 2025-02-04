@@ -30,11 +30,13 @@ func decode_value(i, json) Result {
     }
 
     elif type == "array" {
-        local value = decode_array($json);
+        local value = "<See arr list>";
+        decode_array $json;
     }
 
     elif type == "object" {
-        local value = decode_object($json);
+        local value = "<See key list and values list>";
+        decode_object $json;
     }
 
     elif type == "true" {
@@ -206,10 +208,9 @@ func decode_number(json) {
     return ret;
 }
 
-func decode_array(json) {
+proc decode_array json {
     delete arr;
     i++;
-    local start_i = i;
 
     local ret = "";
     local level = 1;
@@ -236,7 +237,6 @@ func decode_array(json) {
                 last_level1_arr = 0;
             }
             i++;
-        
         
         } elif $json[i] == "\"" {
             skip_string $json;
@@ -281,8 +281,6 @@ func decode_array(json) {
             i++;
         }
     }
-
-    return slice($json, start_i, i - 2);
 }
 
 proc add_to_kv kv, val {
@@ -293,12 +291,11 @@ proc add_to_kv kv, val {
     }
 }
 
-func decode_object(json) {
+proc decode_object json {
     delete keys;
     delete values;
 
     i++;
-    local start_i = i;
 
     local ret = "";
     local level = 1;
@@ -377,8 +374,6 @@ func decode_object(json) {
             i++;
         }
     }
-
-    return slice($json, start_i, i - 2);
 }
 
 

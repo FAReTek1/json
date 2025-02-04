@@ -14,3 +14,5 @@
 ################################################################
 
 %include backpack/json/json/decoder
+
+%include backpack/json/json/encoder
