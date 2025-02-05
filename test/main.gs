@@ -1,3 +1,10 @@
+# Run the project for encoding/decoding JSON
+# ---
+# There is not yet rigorous error checking. Also, the code is a bit weird, and I should improve it.
+# ---
+# This was written in goboscript ( https://github.com/aspizu/goboscript ), and the source code for this project can be found here: https://github.com/FAReTek1/json
+
+
 %include backpack/json
 
 costumes "blank.svg";

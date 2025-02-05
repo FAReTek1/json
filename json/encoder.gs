@@ -58,6 +58,8 @@ func encode_string(s) {
         # Strangely, scratch equates \t with 0, but you can bypass this using the contains block
         } elif $s[i] == "\t" and $s[i] in "\t"{
             ret &= "\\t";
+        } else {
+            ret &= $s[i];
         }
         # You do not need to encode unicode 
 

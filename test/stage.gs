@@ -1,1 +1,1 @@
-costumes "blank.svg";
+costumes "{}.svg";
