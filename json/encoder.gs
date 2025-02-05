@@ -39,7 +39,7 @@ func encode(Result r) {
 
 func encode_string(s) {
     local i = 1;
-    local ret = "";
+    local ret = "\"";
     
     repeat length $s {
         if $s[i] == "\"" {
@@ -66,7 +66,7 @@ func encode_string(s) {
         i++;
     }
 
-    return ret;
+    return ret & "\"";
 }
 
 func encode_value(Result r) {
