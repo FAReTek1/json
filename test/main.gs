@@ -3,9 +3,68 @@
 costumes "blank.svg";
 
 onflag {
-    ask "";
-    Result r = decode(answer());
-    say r.type & ": " & r.value;
+    goto -240, -100
+    forever{
+        hide keys; hide values; hide arr;
+        ask "encode/decode (e/d)";
+        ans = answer()[1];
 
-    say encode(r);
+        if ans == "e" {
+            ask "Encoding type: arr/obj/num/str/(blank to use decoded JSON)";
+            Result to_encode = Result{};
+            if answer() == "" {
+                to_encode = r;
+            } elif answer() == "str" {
+                to_encode.type = "string";
+                ask "encoding string: ";
+                to_encode.value = answer();
+            } elif answer() == "num" {
+                to_encode.type = "number";
+                ask "encoding number: ";
+                to_encode.value = answer();
+            } elif answer() == "obj" {
+                delete keys; delete values;
+                show keys; show values;
+                to_encode.type = "object";
+
+                until answer()[1] == "n" {
+                    ask "key: ";
+                    add answer() to keys;
+                    ask "value: ";
+                    add answer() to values;
+                    ask "continue? (y/n)";
+                }
+            } elif answer() == "arr" {
+                delete arr;
+                show arr;
+                to_encode.type = "array";
+
+                until answer()[1] == "n" {
+                    ask "add value: ";
+                    add answer() to arr;
+                    ask "continue? (y/n)";
+                }
+            } else {
+                ask "Well I'll just use the previous decoded data";
+                to_encode = r;
+            }
+
+            encoded = encode(to_encode);
+            
+            ask "Encoded JSON: " & encode(r);
+
+        } elif ans == "d" {
+            ask "decode what?";
+            Result r = decode(answer());
+
+            if r.type == "array" {
+                show arr;
+            } elif r.type == "object" {
+                show keys;
+                show values;
+            }
+
+            ask r.type & ": \n" & r.value;
+        }
+    }
 }
