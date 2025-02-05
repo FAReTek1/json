@@ -10,7 +10,7 @@
 costumes "blank.svg";
 
 onflag {
-    goto -240, -100
+    goto -240, -100;
     forever{
         hide keys; hide values; hide arr;
         ask "encode/decode (e/d)";
